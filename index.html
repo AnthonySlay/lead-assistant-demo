@@ -209,7 +209,7 @@ const history = [];   // [{role, content}] sent to the server each turn
 let busy = false;
 
 function sessionId() {
-  const key = "lead-demo-session";
+  const key = "lead-demo-session-" + P.id;   // one chat session per business
   let id = null;
   try { id = sessionStorage.getItem(key); } catch (e) {}
   if (!id) {
