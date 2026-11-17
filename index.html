@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Lead Assistant demo</title>
+<meta name="description" content="Demo of an AI guide that answers customer questions and captures leads for a local service business.">
+<meta name="robots" content="noindex">
+<style>
+:root { --primary:#0B3C6F; --accent:#F28C28; --ink:#18212b; --muted:#5d6875; --line:#e3e7ec; --bg:#f5f7f9; --card:#fff; }
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body { margin:0; font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+svg.i { width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+.wrap { max-width:1120px; margin:0 auto; padding:0 16px; }
+.demo-bar { background:#111; color:#eee; font-size:13px; text-align:center; padding:6px 12px; }
+
+.hero { color:#fff; background-color:var(--primary);
+  background-image:radial-gradient(900px 420px at 88% -10%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%),
+    linear-gradient(160deg, rgba(255,255,255,.07), rgba(0,0,0,.28));
+  background-size:cover; background-position:center; padding-bottom:36px; }
+.hero.photo { background-image:linear-gradient(100deg, color-mix(in srgb, var(--primary) 88%, transparent) 0%, color-mix(in srgb, var(--primary) 64%, transparent) 45%, color-mix(in srgb, var(--primary) 26%, transparent) 100%), var(--photo); background-position:center; }
+.top { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 0; }
+.logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; letter-spacing:-.01em; }
+.logo-mark { width:38px; height:38px; border-radius:10px; background:var(--accent); color:#16130c; display:grid; place-items:center; font-size:22px; }
+.call { display:inline-flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font-weight:600; border:1px solid rgba(255,255,255,.35); padding:8px 14px; border-radius:999px; white-space:nowrap; }
+.hero-grid { display:grid; gap:24px; padding-top:12px; }
+.pitch h1 { font-size:clamp(28px,6vw,46px); line-height:1.1; margin:6px 0 12px; letter-spacing:-.02em; }
+.pitch p { margin:0 0 16px; font-size:18px; color:rgba(255,255,255,.88); max-width:34em; }
+.badges { display:flex; flex-wrap:wrap; gap:8px; padding:0; margin:0; list-style:none; }
+.badges li { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.12); border-radius:999px; padding:6px 12px; font-size:14px; }
+.badges svg { color:var(--accent); font-size:16px; }
+
+.chat { background:var(--card); color:var(--ink); border-radius:16px; box-shadow:0 18px 50px rgba(0,0,0,.28); display:flex; flex-direction:column; overflow:hidden; border-top:5px solid var(--accent); }
+.chat-head { padding:14px 16px 10px; border-bottom:1px solid var(--line); }
+.chat-head h2 { margin:0; font-size:20px; }
+.chat-head p { margin:2px 0 0; color:var(--muted); font-size:13.5px; }
+.log { min-height:96px; max-height:330px; overflow-y:auto; padding:14px 14px 4px; display:flex; flex-direction:column; gap:10px; background:#fafbfc; }
+.msg { max-width:86%; padding:10px 13px; border-radius:16px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:15.5px; }
+.msg.ai { align-self:flex-start; background:#fff; border:1px solid var(--line); border-bottom-left-radius:5px; }
+.msg.me { align-self:flex-end; background:var(--primary); color:#fff; border-bottom-right-radius:5px; }
+.msg.err { align-self:center; background:#fff4e5; border:1px solid #f3d19c; color:#6b4a11; font-size:14px; text-align:center; }
+.msg.ok { align-self:center; background:#e9f7ee; border:1px solid #b9e2c6; color:#1d5a32; font-size:14px; }
+.typing { display:flex; gap:5px; padding:14px 15px; }
+.typing span { width:7px; height:7px; border-radius:50%; background:#9aa5b1; animation:blink 1.2s infinite both; }
+.typing span:nth-child(2) { animation-delay:.2s; } .typing span:nth-child(3) { animation-delay:.4s; }
+@keyframes blink { 0%,80%,100% { opacity:.25; } 40% { opacity:1; } }
+.chips { display:flex; flex-wrap:wrap; gap:8px; padding:10px 14px 2px; background:#fafbfc; }
+.chips button { font:inherit; font-size:14px; text-align:left; background:#fff; color:var(--primary); border:1px solid color-mix(in srgb, var(--primary) 35%, #fff); border-radius:999px; padding:7px 12px; cursor:pointer; }
+.chips[hidden] { display:none; }
+.chips button:hover { background:color-mix(in srgb, var(--primary) 8%, #fff); }
+.send { display:flex; gap:8px; padding:12px 14px; background:#fafbfc; }
+.send input { flex:1; min-width:0; font:inherit; padding:12px 14px; border:1px solid #cfd6dd; border-radius:12px; background:#fff; color:var(--ink); }
+.send input:focus { outline:2px solid color-mix(in srgb, var(--primary) 55%, #fff); border-color:transparent; }
+.send button { font:inherit; font-weight:700; border:0; border-radius:12px; padding:0 18px; background:var(--accent); color:#16130c; cursor:pointer; }
+.send button:disabled, .send input:disabled { opacity:.55; cursor:default; }
+.fine { margin:0; padding:0 14px 12px; background:#fafbfc; color:var(--muted); font-size:12px; }
+
+section { padding:40px 0 8px; }
+section h2 { font-size:24px; margin:0 0 4px; letter-spacing:-.01em; }
+.sub { color:var(--muted); margin:0 0 18px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(158px,1fr)); gap:12px; }
+.svc { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
+.svc .ico { width:42px; height:42px; border-radius:11px; display:grid; place-items:center; font-size:24px; color:var(--primary); background:color-mix(in srgb, var(--primary) 9%, #fff); margin-bottom:10px; }
+.svc b { display:block; line-height:1.25; font-size:15px; }
+.svc span { color:var(--muted); font-size:14px; }
+.info { display:grid; gap:12px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+.card h3 { margin:0 0 6px; font-size:16px; display:flex; align-items:center; gap:8px; }
+.card h3 svg { color:var(--accent); font-size:20px; }
+.card p { margin:0; color:#3c4753; }
+footer { margin-top:40px; background:#12161c; color:#aab3bd; font-size:14px; padding:22px 0; text-align:center; }
+footer b { color:#fff; }
+
+@media (min-width:880px) {
+  .hero { padding-bottom:56px; }
+  .hero.photo { background-position:center 40%; }
+  .hero-grid { grid-template-columns:1fr 440px; align-items:center; gap:44px; padding-top:28px; }
+  .log { height:360px; max-height:none; }
+  .info { grid-template-columns:repeat(3,1fr); }
+  .grid { grid-template-columns:repeat(4,1fr); }
+}
+@media (max-width:420px) { .call span { display:none; } .call { padding:9px; } }
+</style>
+</head>
+<body>
+<div class="demo-bar">Demo business, fictional. Phone numbers and emails here are not real.</div>
+
+<header class="hero" id="hero">
+  <div class="wrap">
+    <div class="top">
+      <div class="logo"><span class="logo-mark" id="logoMark"></span><span id="logoText"></span></div>
+      <a class="call" id="callBtn" href="#"><svg class="i" viewBox="0 0 24 24" id="callIco"></svg><span id="phone"></span></a>
+    </div>
+    <div class="hero-grid">
+      <div class="pitch">
+        <h1 id="name"></h1>
+        <p id="tagline"></p>
+        <ul class="badges" id="badges"></ul>
+      </div>
+      <div class="chat" id="chat">
+        <div class="chat-head">
+          <h2>Need a quick answer?</h2>
+          <p id="chatSub"></p>
+        </div>
+        <div class="log" id="log" aria-live="polite"></div>
+        <div class="chips" id="chips"></div>
+        <form class="send" id="form" autocomplete="off">
+          <input id="input" type="text" maxlength="800" placeholder="Type your question..." aria-label="Your question" enterkeyhint="send">
+          <button id="sendBtn" type="submit">Send</button>
+        </form>
+        <p class="fine">AI guide. Prices are ranges, not quotes. Demo only: please don't enter real personal details.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>Our services</h2>
+    <p class="sub">Typical starting prices. Ask the AI guide for the full range.</p>
+    <div class="grid" id="services"></div>
+  </section>
+  <section>
+    <div class="info" id="info"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Demo business, fictional. AI guide built by <b id="builtBy"></b>.</div>
+</footer>
+
+<script src="profiles.js"></script>
+<script>
+// ---- Settings (the only two lines you edit) ----
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMfP9tqxFMBDBMVrDuz89xUpvfvG-lw2HS2MV6R7vnfeykknF3nXCRwtFUacuDZjci/exec";
+const FREELANCER_NAME = "Anthony S.";
+// ------------------------------------------------
+
+const ICONS = {
+  "droplet": '<path d="M12 3C12 3 5 10.5 5 15a7 7 0 0 0 14 0C19 10.5 12 3 12 3z"/>',
+  "water-heater": '<rect x="6" y="6" width="12" height="16" rx="3"/><path d="M9 6V3M15 6V3"/><path d="M12 11c-1.5 1.8-2 2.8-2 3.8a2 2 0 0 0 4 0c0-1-.5-2-2-3.8z"/>',
+  "drain": '<circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><circle cx="12" cy="12" r="4"/>',
+  "toilet": '<path d="M7 3h10v7H7z"/><path d="M4 10h16c0 5-3 8-8 8s-8-3-8-8z"/><path d="M9 18v3h6v-3"/>',
+  "faucet": '<path d="M4 8h9a4 4 0 0 1 4 4v1"/><path d="M8 8V5M5 5h6"/><path d="M17 16c-1 1.5-1.5 2.2-1.5 3a1.5 1.5 0 0 0 3 0c0-.8-.5-1.5-1.5-3z"/>',
+  "pipe": '<path d="M3 8h10v8h8"/><line x1="3" y1="5" x2="3" y2="11"/><line x1="21" y1="13" x2="21" y2="19"/><line x1="13" y1="8" x2="13" y2="16"/>',
+  "pump": '<circle cx="12" cy="14" r="6"/><path d="M12 8V3h5"/><path d="M9 14h6M12 11v6"/>',
+  "disposal": '<path d="M3 5h18"/><path d="M8 5v3M16 5v3"/><path d="M6 8h12l-1 11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M10 13h4"/>',
+  "shower": '<path d="M5 21V8a4 4 0 0 1 4-4h2"/><path d="M7 11a5 5 0 0 1 10 0z"/><path d="M9 15v2M13 15v2M17 15v2M11 19v2M15 19v2"/>',
+  "wrench": '<path d="M14.5 6.5a4 4 0 0 0 5 5L20 12 12 20a2.1 2.1 0 0 1-3-3l8-8-.5-.5a4 4 0 0 0-2-2z"/><path d="M14.5 6.5a4 4 0 0 1 5-3l-2.5 2.5 1 2L20 5"/>',
+  "flame": '<path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-6 2-9.5z"/>',
+  "bolt": '<polyline points="13 2 4 14 12 14 11 22 20 10 12 10 13 2"/>',
+  "outlet": '<rect x="3" y="3" width="18" height="18" rx="4"/><line x1="9" y1="8" x2="9" y2="11"/><line x1="15" y1="8" x2="15" y2="11"/><path d="M10 16h4"/>',
+  "panel": '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h3M13 8h3M8 12h3M13 12h3M8 16h3M13 16h3"/>',
+  "fan": '<circle cx="12" cy="12" r="2"/><path d="M12 10C12 5 14 3 16 4s1 5-4 6"/><path d="M14 12c5 0 7 2 6 4s-5 1-6-4"/><path d="M12 14c0 5-2 7-4 6s-1-5 4-6"/>',
+  "bulb": '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.7.6 1 1.3 1 2.1h5c0-.8.3-1.5 1-2.1A6 6 0 0 0 12 3z"/>',
+  "ev-charger": '<rect x="5" y="3" width="10" height="18" rx="2"/><polyline points="11 7 8 12 12 12 9 17"/><path d="M15 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V9"/>',
+  "generator": '<rect x="3" y="6" width="18" height="11" rx="2"/><polyline points="13 8 9 12 13 12 11 15"/><circle cx="7" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/>',
+  "switch": '<rect x="3" y="8" width="18" height="8" rx="4"/><circle cx="16" cy="12" r="2"/>',
+  "search": '<circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/>',
+  "alarm": '<circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/><path d="M4 8a9 9 0 0 0 0 8M20 8a9 9 0 0 1 0 8"/>',
+  "shield": '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><polyline points="9 12 11 14 15 10"/>',
+  "home": '<path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V10"/><path d="M10 21v-6h4v6"/>',
+  "phone": '<path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 5a2 2 0 0 1 2-2z"/>',
+  "clock": '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
+  "map-pin": '<path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'
+};
+
+const params = new URLSearchParams(location.search);
+const P = PROFILES[params.get("biz")] || PROFILES.plumbing || Object.values(PROFILES)[0];
+const $ = (id) => document.getElementById(id);
+const icon = (name) => '<svg class="i" viewBox="0 0 24 24">' + (ICONS[name] || ICONS.wrench) + "</svg>";
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+
+// ---- Page content from the profile ----
+document.title = P.name + " | AI guide demo";
+document.documentElement.style.setProperty("--primary", P.brand.primary);
+document.documentElement.style.setProperty("--accent", P.brand.accent);
+if (P.hero_image) { $("hero").classList.add("photo"); $("hero").style.setProperty("--photo", 'url("' + encodeURI(P.hero_image) + '")'); }
+$("logoMark").innerHTML = icon(P.brand.logo_icon);
+$("logoText").textContent = P.brand.logo_text;
+$("callIco").innerHTML = ICONS.phone;
+$("phone").textContent = P.phone;
+$("name").textContent = P.name;
+$("tagline").textContent = P.tagline;
+$("builtBy").textContent = FREELANCER_NAME;
+$("chatSub").textContent = "Ask " + P.guide_name + " about prices, services or booking.";
+[["shield", "Licensed and insured"], ["clock", "Emergency service"], ["map-pin", "Local to " + P.town]].forEach(([i, t]) => {
+  const li = el("li"); li.innerHTML = icon(i); li.appendChild(el("span", "", t)); $("badges").appendChild(li);
+});
+P.services.forEach((s) => {
+  const card = el("div", "svc"), ico = el("div", "ico");
+  ico.innerHTML = icon(s.icon);
+  card.append(ico, el("b", "", s.name), el("span", "", "from $" + Number(s.price_low).toLocaleString("en-US")));
+  $("services").appendChild(card);
+});
+[["clock", "Hours", P.hours + ". " + P.emergency_hours],
+ ["map-pin", "Service area", P.service_area.join(", ")],
+ ["phone", "Contact", P.phone + " · " + P.email_display]].forEach(([i, h, t]) => {
+  const card = el("div", "card"), h3 = el("h3");
+  h3.innerHTML = icon(i); h3.appendChild(el("span", "", h));
+  card.append(h3, el("p", "", t)); $("info").appendChild(card);
+});
+
+// ---- Chat ----
+const log = $("log"), input = $("input"), sendBtn = $("sendBtn"), chips = $("chips");
+const history = [];   // [{role, content}] sent to the server each turn
+let busy = false;
+
+function sessionId() {
+  const key = "lead-demo-session";
+  let id = null;
+  try { id = sessionStorage.getItem(key); } catch (e) {}
+  if (!id) {
+    id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12));
+    try { sessionStorage.setItem(key, id); } catch (e) {}
+  }
+  return id;
+}
+function bubble(cls, text) {
+  const b = el("div", "msg " + cls, text);
+  log.appendChild(b); log.scrollTop = log.scrollHeight;
+  return b;
+}
+function setBusy(on) {
+  busy = on; input.disabled = on; sendBtn.disabled = on;
+  if (!on && matchMedia("(pointer:fine)").matches) input.focus();
+}
+
+async function send(text) {
+  text = (text || "").trim().slice(0, 800);
+  if (!text || busy) return;
+  chips.hidden = true;
+  input.value = "";
+  bubble("me", text);
+  history.push({ role: "user", content: text });
+  setBusy(true);
+  const typing = el("div", "msg ai typing");
+  typing.innerHTML = "<span></span><span></span><span></span>";
+  log.appendChild(typing); log.scrollTop = log.scrollHeight;
+
+  let data = null;
+  try {
+    if (!/^https:\/\//.test(APPS_SCRIPT_URL)) throw new Error("not-connected");
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },   // text/plain avoids a CORS preflight
+      body: JSON.stringify({ biz: P.id, session: sessionId(), messages: history })
+    });
+    data = await res.json();
+  } catch (e) {
+    data = { ok: false, message: e.message === "not-connected"
+      ? "This demo isn't connected to its AI yet. (Setup step 8: paste the web app URL into index.html.)"
+      : "Sorry, we couldn't reach the AI guide. Please check your connection and try again." };
+  }
+  typing.remove();
+  if (data && data.ok && data.reply) {
+    const next = Array.isArray(data.suggestions) ? data.suggestions.slice(0, 3) : [];
+    // Keep the quick-reply line in the history so the AI keeps writing them.
+    history.push({ role: "assistant", content: data.reply + (next.length ? "\n>> " + next.join(" | ") : "") });
+    bubble("ai", data.reply);
+    showChips(next);
+    if (data.lead_saved && !send.saved) { send.saved = true; bubble("ok", "Request sent to the team"); }
+  } else {
+    history.pop();   // let the visitor try that message again
+    chips.hidden = !chips.children.length;
+    bubble("err", (data && data.message) || "Sorry, something went wrong. Please try again.");
+  }
+  setBusy(false);
+}
+
+function showChips(list) {
+  chips.textContent = "";
+  list.forEach((q) => {
+    const b = el("button", "", q); b.type = "button";
+    b.addEventListener("click", () => send(q));
+    chips.appendChild(b);
+  });
+  chips.hidden = !list.length;
+  log.scrollTop = log.scrollHeight;
+}
+
+bubble("ai", "Hi! I'm " + P.guide_name + ". Ask me anything about our services, prices or booking a visit.");
+showChips(P.starter_questions);
+$("form").addEventListener("submit", (e) => { e.preventDefault(); send(input.value); });
+$("callBtn").addEventListener("click", (e) => { e.preventDefault(); alert("Demo business: this phone number is not real."); });
+</script>
+</body>
+</html>
